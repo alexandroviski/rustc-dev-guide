@@ -36,6 +36,12 @@ will in turn demand information about that crate, starting from the
 However, that vision is not fully realized. Still, big chunks of the
 compiler (for example, generating MIR) work exactly like this.
 
+## What can you do with queries?
+
+As mentioned above, queries are memoised and allow for incremental compilation.
+However, they are even more powerful than that: queries let you control
+_when_ and _how_ computation is done.
+
 ### Incremental Compilation in Detail
 
 The [Incremental Compilation in Detail][query-model] chapter gives a more
@@ -150,6 +156,11 @@ pub fn provide(providers: &mut Providers) {
 fn fubar<'tcx>(tcx: TyCtxt<'tcx>, key: DefId) -> Fubar<'tcx> { ... }
 ```
 
+If you want to add on to an existing query - run your own code, then call the original -
+then you can use a closure which delegates to
+`rustc_interface::DEFAULT_QUERY_PROVIDERS`.
+See [how rustdoc uses it][everybody_loops] for an example.
+
 N.B. Most of the `rustc_*` crates only provide **local
 providers**. Almost all **extern providers** wind up going through the
 [`rustc_metadata` crate][rustc_metadata], which loads the information
@@ -159,6 +170,9 @@ they define both a [`provide`][ext_provide] and a
 [`provide_extern`][ext_provide_extern] function that `rustc_driver`
 can invoke.
 
+<!-- TODO: this should be updated once https://github.com/rust-lang/rust/pull/74347 lands and everybody_loops is updated to match -->
+
+[everybody_loops]: https://github.com/rust-lang/rust/pull/73566/files#diff-0de644786a2f1fd88c7d7f44bc3fa4bbR412
 [rustc_metadata]: https://github.com/rust-lang/rust/tree/master/src/librustc_metadata
 [ext_provide]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_codegen_llvm/attributes/fn.provide.html
 [ext_provide_extern]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_codegen_llvm/attributes/fn.provide_extern.html
